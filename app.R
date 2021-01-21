@@ -14,6 +14,8 @@ stats = read.csv("/Users/hugo/Documents/upm/cuatrimestre1/BigData/projects/DV2/n
 players <- (stats$PLAYER_NAME)
 tmp = as.factor(unique(players))
 
+
+
 # Define UI ----
 ui <- fluidPage(
   headerPanel("Data Visualization Project"),
@@ -102,8 +104,14 @@ server <- function(input, output) {
       #     geom_line(aes(colour = "red")) +
       #     geom_point() + 
       #     labs(x = "Games", y = input$registerData)
-      plot_ly(lines_data, x = 1:length(register), y = register, type = 'scatter', mode = 'lines+markers')
       
+      plot_ly(lines_data, x = 1:length(register), y = register, type = 'scatter',
+              mode = 'lines+markers',
+              text = paste(input$registerData, ": ", register,
+                           "<br>Match: ", lines_data$GAME_DATE_EST),
+              hoverinfo = 'text') %>% layout(title = "Evolution of the player", 
+                                          xaxis = list(title = "Date"),
+                                          yaxis = list(title = input$registerData))
     }
   })
   output$lineChart2 <- renderPlotly({
@@ -142,7 +150,7 @@ server <- function(input, output) {
     #ggplot(medias, aes(x = medias$tmp2, y = medias$tmp1)) +
     #  geom_bar(stat = "identity", color="darkblue", fill="white") +
     #  labs(x = "Season", y = input$registerData)
-    plot_ly(lines_data, x = tmp2, y = tmp1, type = "bar", color = ~tmp2)
+    plot_ly(lines_data, x = tmp2, y = tmp1, type = "bar", color = ~tmp2) %>% layout(xaxis = list(title = "Season"),yaxis = list(title = input$registerData))
   })
   output$lineChart3 <- renderPlotly({
     player_selected = input$playersInput
