@@ -8,7 +8,7 @@ library(rCharts)
 library(fmsb)
 library(plotly)
 
-stats = read.csv("/Users/hugo/Documents/upm/cuatrimestre1/BigData/projects/DV2/nba_stats/stats.csv", 
+stats = read.csv("C:/Users/gulum/Desktop/Data Science Msc/Data Visualization/NBA-visualization/nba_stats/stats.csv", 
                  header = TRUE)
 
 players <- (stats$PLAYER_NAME)
@@ -53,28 +53,42 @@ ui <- fluidPage(
       )
     ),
     tabPanel("Compare Players",
-      sidebarLayout(
-        sidebarPanel(
-          img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
-          p(""),
-          helpText("See how players of the NBA have changed along the years."),
-          selectizeInput("playersInput","Player", h3("Choose a player"), 
-                        selected = NULL, 
-                        #multiple = TRUE
-          ),
-          selectInput("registerData","Choose a variable to display", 
-                      choices = list("Points", "Assists",
-                                    "Blocks", "Rebounds"),
-                      selected = "Points"
-          ),
-          sliderInput("slider", h3("Range of seasons:"), min = 2010, max = 2020, 
-                      value = c(min,max)
-          )
-        ),
-        mainPanel(
-          
-        )
-      )
+             sidebarLayout(
+               sidebarPanel(
+                 img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
+                 p(""),
+                 helpText("See how players of the NBA have changed along the years."),
+                 selectInput(inputId = "playersInput1", 
+                             label = "Select player 1",
+                             choices = levels(tmp),
+                             selected = "James Harden"
+                 ),
+                 selectInput(inputId = "playersInput2", 
+                             label = "Select player 2",
+                             choices = levels(tmp),
+                             selected = "Russell Westbrook"
+                 ),
+                 selectInput("registerData1","Choose a variable to display", 
+                             choices = list("Points", "Assists",
+                                            "Blocks", "Rebounds"),
+                             selected = "Points"
+                 ),
+                 selectInput("registerData2","Choose a variable to display", 
+                             choices = list("Field Goal %",
+                                            "Field Goal 3p %"),
+                             selected = "Field Goal %"
+                 )
+               ),
+               mainPanel(
+                 verticalLayout(
+                   plotlyOutput("lineChart4"),
+                   splitLayout(
+                     plotlyOutput("lineChart5"),
+                     plotlyOutput("lineChart6")
+                   )
+                 )
+               )
+             )
     )
   )
 )
@@ -177,7 +191,92 @@ server <- function(input, output) {
             )
     )
   })
+  output$lineChart4 <- renderPlotly({
+    player_selected1 = input$playersInput1
+    player_selected2 = input$playersInput2
+    lines_data <- subset(stats, PLAYER_NAME == player_selected1 | PLAYER_NAME  == player_selected2)
+    lines_data <- lines_data %>%
+      group_by(SEASON, PLAYER_NAME) %>%
+      summarise(PTS=(mean(PTS)),AST=(mean(AST)),REB=(mean(REB)),STL=(mean(STL)),BLK=(mean(BLK)))
+    register <- switch(input$registerData1,
+                       "Points" = lines_data$PTS,
+                       "Assists" = lines_data$AST,
+                       "Blocks" = lines_data$BLK,
+                       "Rebounds" = lines_data$REB)
+    p <- plot_ly(x = lines_data$SEASON,
+                 y = register,
+                 type = 'scatter',
+                 mode = 'lines',
+                 color = lines_data$PLAYER_NAME,
+                 text = paste(input$registerData1, ": ", round(register,1),
+                              "<br>Season: ", lines_data$SEASON,
+                              "<br>Player name: ", lines_data$PLAYER_NAME),
+                 hoverinfo = 'text')
+    p <- p %>% layout(
+      title = "Player comparison", 
+      xaxis = list(title = 'Season'),
+      yaxis = list(title = input$registerData1)
+    )
+    p
+  })
+  output$lineChart5 <- renderPlotly({
+    player_selected1 = input$playersInput1
+    player_selected2 = input$playersInput2
+    lines_data <- subset(stats, PLAYER_NAME == player_selected1 | PLAYER_NAME  == player_selected2)
+    lines_data <- lines_data %>%
+      group_by(SEASON, PLAYER_NAME) %>%
+      summarise(FG3M=sum(FG3M),FG3A=sum(FG3A),FGM=sum(FGM),FGA=sum(FGA))
+    lines_data$FG3_PCT <- (lines_data$FG3M/lines_data$FG3A)*100
+    lines_data$FG_PCT <- (lines_data$FGM/lines_data$FGA)*100
+    register <- switch(input$registerData2,
+                       "Field Goal %" = lines_data$FG_PCT,
+                       "Field Goal 3p %" = lines_data$FG3_PCT)
+    p <- plot_ly(
+      y = lines_data$SEASON,
+      x = register,
+      type = 'bar',
+      orientation = 'h',
+      color = lines_data$PLAYER_NAME,
+      hoverinfo = 'text',
+      hovertext = paste(input$registerData2,": ", round(register,1),
+                        "<br>Season: ", lines_data$SEASON,
+                        "<br>Player name: ", lines_data$PLAYER_NAME)
+    )
+    
+    p <- p %>% layout(
+      yaxis = list(title = 'Season'),
+      xaxis = list(title = input$registerData2),
+      barmode = 'stack'
+    )
+    p
+  })
+  output$lineChart6 <- renderPlotly({
+    player_selected1 = input$playersInput1
+    player_selected2 = input$playersInput2
+    lines_data <- subset(stats, PLAYER_NAME == player_selected1 | PLAYER_NAME  == player_selected2)
+    lines_data <- lines_data %>%
+      group_by(SEASON, PLAYER_NAME) %>%
+      summarise(PLUS_MINUS=(mean(PLUS_MINUS)))
+    p <- plot_ly(
+      x = lines_data$PLUS_MINUS,
+      y = lines_data$SEASON,
+      type = 'bar',
+      orientation = 'h',
+      color = lines_data$PLAYER_NAME,
+      text = paste("Plus minus: ", round(lines_data$PLUS_MINUS,0),
+                   "<br>Season: ", lines_data$SEASON,
+                   "<br>Player name: ", lines_data$PLAYER_NAME),
+      hoverinfo = 'text'
+    )
+    
+    p <- p %>% layout(
+      yaxis = list(title = 'Season'),
+      xaxis = list(title = 'Plus minus')
+    )
+    p
+  })
 }
 
 # Run the app ----
 shinyApp(ui = ui, server = server)
+
