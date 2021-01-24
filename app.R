@@ -3,95 +3,124 @@ library(GGally)
 library(devtools) 
 library(tidyverse)
 library(lubridate)
-install_github("ramnathv/rCharts")
 library(rCharts)
 library(fmsb)
 library(plotly)
+library(factoextra)
+library(quantreg)
 
-stats = read.csv("C:/Users/gulum/Desktop/Data Science Msc/Data Visualization/NBA-visualization/nba_stats/stats.csv", 
+
+stats = read.csv("nba_stats/stats.csv", 
                  header = TRUE)
 
 players <- (stats$PLAYER_NAME)
 tmp = as.factor(unique(players))
 
-
-
 # Define UI ----
 ui <- fluidPage(
   headerPanel("Data Visualization Project"),
   tabsetPanel(type = 'tabs',
-    tabPanel("Evolution of players",
-      sidebarLayout(
-        sidebarPanel(
-          img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
-          p(""),
-          helpText("See how players of the NBA have changed along the years."),
-          selectInput(inputId = "playersInput", 
-                      label = "Select a player",
-                      choices = levels(tmp),
-                      selected = levels(tmp)[1], 
-                      #multiple = TRUE
-          ),
-          selectInput("registerData","Choose a variable to display", 
-                      choices = list("Points", "Assists",
-                                  "Blocks", "Rebounds"),
-                      selected = "Points"
-          ),
-          sliderInput("slider", h3("Range of seasons:"), min = 2003, max = 2020, 
-                      value = c(min,max)
-          )
-        ),
-        mainPanel(
-          verticalLayout(
-            plotlyOutput("lineChart1"),
-            splitLayout(
-              plotlyOutput("lineChart2"),
-              plotlyOutput("lineChart3")
-            )
-          )
-        )
-      )
-    ),
-    tabPanel("Compare Players",
-             sidebarLayout(
-               sidebarPanel(
-                 img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
-                 p(""),
-                 helpText("See how players of the NBA have changed along the years."),
-                 selectInput(inputId = "playersInput1", 
-                             label = "Select player 1",
-                             choices = levels(tmp),
-                             selected = "James Harden"
-                 ),
-                 selectInput(inputId = "playersInput2", 
-                             label = "Select player 2",
-                             choices = levels(tmp),
-                             selected = "Russell Westbrook"
-                 ),
-                 selectInput("registerData1","Choose a variable to display", 
-                             choices = list("Points", "Assists",
-                                            "Blocks", "Rebounds"),
-                             selected = "Points"
-                 ),
-                 selectInput("registerData2","Choose a variable to display", 
-                             choices = list("Field Goal %",
-                                            "Field Goal 3p %"),
-                             selected = "Field Goal %"
-                 )
-               ),
-               mainPanel(
-                 verticalLayout(
-                   plotlyOutput("lineChart4"),
-                   splitLayout(
-                     plotlyOutput("lineChart5"),
-                     plotlyOutput("lineChart6")
-                   )
-                 )
-               )
-             )
-    )
+              tabPanel("Evolution of players",
+                       sidebarLayout(
+                         sidebarPanel(
+                           img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
+                           p(""),
+                           helpText("See how players of the NBA have changed along the years."),
+                           selectInput(inputId = "playersInput", 
+                                       label = "Select a player",
+                                       choices = levels(tmp),
+                                       selected = levels(tmp)[1], 
+                                       #multiple = TRUE
+                           ),
+                           selectInput("registerData","Choose a variable to display", 
+                                       choices = list("Points", "Assists",
+                                                      "Blocks", "Rebounds"),
+                                       selected = "Points"
+                           ),
+                           sliderInput("slider", h3("Range of seasons:"), min = 2003, max = 2020, 
+                                       value = c(min,max)
+                           )
+                         ),
+                         mainPanel(
+                           verticalLayout(
+                             plotlyOutput("lineChart1"),
+                             splitLayout(
+                               plotlyOutput("lineChart2"),
+                               plotlyOutput("lineChart3")
+                             )
+                           )
+                         )
+                       )
+              ),tabPanel("Compare Players",
+                         sidebarLayout(
+                           sidebarPanel(
+                             img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
+                             p(""),
+                             helpText("Compare the different players of the NBA along the years"),
+                             selectInput(inputId = "playersInput1", 
+                                         label = "Select player 1",
+                                         choices = levels(tmp),
+                                         selected = "James Harden"
+                             ),
+                             selectInput(inputId = "playersInput2", 
+                                         label = "Select player 2",
+                                         choices = levels(tmp),
+                                         selected = "Russell Westbrook"
+                             ),
+                             selectInput("registerData1","Choose a variable to display", 
+                                         choices = list("Points", "Assists",
+                                                        "Blocks", "Rebounds"),
+                                         selected = "Points"
+                             ),
+                             selectInput("registerData2","Choose a variable to display", 
+                                         choices = list("Field Goal %",
+                                                        "Field Goal 3p %"),
+                                         selected = "Field Goal %"
+                             )
+                           ),
+                           mainPanel(
+                             verticalLayout(
+                               plotlyOutput("lineChart4"),
+                               splitLayout(
+                                 plotlyOutput("lineChart5"),
+                                 plotlyOutput("lineChart6")
+                               )
+                             )
+                           )
+                         )
+              ),
+              tabPanel("Clustering",
+                       sidebarLayout(
+                         sidebarPanel(
+                           img(src = "nba.png", height = 100, width = 200, style="display: block; margin-left: auto; margin-right: auto;", style="text-align: center;"),
+                           p(""),
+                           helpText("Clustering to identify positions and players."),
+                           selectInput("registerData3","Choose X variable to display", 
+                                       choices = list("Points", "Assists",
+                                                      "Blocks", "Rebounds", 
+                                                      "Free throws", "Steals"),
+                                       selected = "Points"
+                           ),
+                           selectInput("registerData4","Choose Y variable to display", 
+                                       choices = list("Points", "Assists",
+                                                      "Blocks", "Rebounds",
+                                                      "Free throws", "Steals"),
+                                       selected = "Assists"
+                           )
+                         ),
+                         mainPanel(
+                           verticalLayout(
+                             plotOutput("lineChart7"),
+                             splitLayout(
+                               plotOutput("lineChart8"),
+                               plotOutput("lineChart9")
+                             )
+                           )
+                         )
+                       )
+              )
   )
-)
+);
 
 # Define server logic ----
 server <- function(input, output) {
@@ -124,8 +153,8 @@ server <- function(input, output) {
               text = paste(input$registerData, ": ", register,
                            "<br>Match: ", lines_data$GAME_DATE_EST),
               hoverinfo = 'text') %>% layout(title = "Evolution of the player", 
-                                          xaxis = list(title = "Date"),
-                                          yaxis = list(title = input$registerData))
+                                             xaxis = list(title = "Date"),
+                                             yaxis = list(title = input$registerData))
     }
   })
   output$lineChart2 <- renderPlotly({
@@ -160,7 +189,7 @@ server <- function(input, output) {
       apply(medias[ , char_columns], 2, as.numeric))
     
     medias$tmp2 <- as.factor(medias$tmp2)
-
+    
     #ggplot(medias, aes(x = medias$tmp2, y = medias$tmp1)) +
     #  geom_bar(stat = "identity", color="darkblue", fill="white") +
     #  labs(x = "Season", y = input$registerData)
@@ -275,8 +304,51 @@ server <- function(input, output) {
     )
     p
   })
+  output$lineChart7 <- renderPlot({
+    lines_data <- subset(stats)
+    lines_data <- lines_data %>%group_by(PLAYER_NAME) %>% summarise(PTS=(mean(PTS)),FTM=(mean(FTM)),FGM=(mean(FGM)),AST=(mean(AST)),REB=(mean(REB)),STL=(mean(STL)),BLK=(mean(BLK)))
+    lines_data2 <- lines_data[,-1]
+    
+    XVariable <- switch(input$registerData3,
+                        "Points" = lines_data$PTS,
+                        "Assists" = lines_data$AST,
+                        "Blocks" = lines_data$BLK,
+                        "Rebounds" = lines_data$REB,
+                        "Free throws" = lines_data$FTM,
+                        "Field Goals made" = lines_data$FGM,
+                        "Steals" = lines_data$STL)
+    
+    YVariable <- switch(input$registerData4,
+                        "Points" = lines_data$PTS,
+                        "Assists" = lines_data$AST,
+                        "Blocks" = lines_data$BLK,
+                        "Rebounds" = lines_data$REB,
+                        "Free throws" = lines_data$FTM,
+                        "Field Goals made" = lines_data$FGM,
+                        "Steals" = lines_data$STL)
+    
+    print(class(XVariable))
+    print(class(YVariable))
+    
+    k1 <- kmeans(lines_data2, centers=5)
+    plot1 <- ggplot(lines_data, aes(XVariable, YVariable, color = k1$cluster)) + geom_point() + theme(legend.position = "top") + labs(x=input$registerData3, y = input$registerData4)
+    plot1 + scale_color_gradient(low = "blue", high = "red")
+    
+  })
+  output$lineChart8 <- renderPlot({
+    lines_data <- subset(stats)
+    lines_data <- lines_data %>%group_by(PLAYER_NAME) %>% summarise(PTS=(mean(PTS)),FTM=(mean(FTM)),FG3M=(mean(FG3M)),FGM=(mean(FGM)),AST=(mean(AST)),REB=(mean(REB)),STL=(mean(STL)),BLK=(mean(BLK)))
+    lines_data2 <- lines_data[,-1]
+    k2 <- kmeans(lines_data2, centers=5)
+    fviz_cluster(k2, data=lines_data2)
+  })
+  output$lineChart9 <- renderPlot({
+    lines_data <- subset(stats)
+    lines_data <- lines_data %>%group_by(PLAYER_NAME) %>% summarise(PTS=(mean(PTS)),FTM=(mean(FTM)),FG3M=(mean(FG3M)),FGM=(mean(FGM)),AST=(mean(AST)),REB=(mean(REB)),STL=(mean(STL)),BLK=(mean(BLK)))
+    lines_data2 <- lines_data[,-1]
+    res <- hcut(lines_data2, k = 5, stand = TRUE)
+    fviz_dend(res, rect = TRUE, cex = 0.5)
+  })
 }
-
 # Run the app ----
 shinyApp(ui = ui, server = server)
-

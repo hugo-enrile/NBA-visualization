@@ -1,0 +1,13 @@
+name: NBA-visualization
+title: NBA-visualization
+username:
+account: agouloumis
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3513769
+bundleId: 4136423
+url: https://agouloumis.shinyapps.io/NBA-visualization/
+when: 1611499046.40232
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md
