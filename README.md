@@ -16,6 +16,6 @@ The dataset has been extracted from the [Kaggle](https://www.kaggle.com/) reposi
 Download all the files contained in the repository and have an R interpreter installed. It is also possible to run the program as a [Shiny application](https://agouloumis.shinyapps.io/NBA-visualization/).
 
 # Contributors
-Alejandro Gouloumis Contreras - @agouloumis
-Hugo Enrile Lacalle - @hugo-enrile
-Joel Ramirez Moreno - @TMPLR11
+* Alejandro Gouloumis Contreras - @agouloumis
+* Hugo Enrile Lacalle - @hugo-enrile
+* Joel Ramirez Moreno - @TMPLR11
